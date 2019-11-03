@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<title>Friend Finder: Survey</title>
+
+		<!-- Bootstrap CSS -->
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+		<!-- jQuery, Popper.js, Bootstrap.js -->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+		<!-- Function definitions for later -->
+		<script type="text/javascript">
+			function gatherData() {
+			    var data = {
+    	    		name: $("#name").val().trim(),
+			        photo: $("#photo").val().trim(),
+        			scores: [
+		        	    $("#q1").val().trim(),
+        		    	$("#q2").val().trim(),
+			            $("#q3").val().trim(),
+    	    		    $("#q4").val().trim(),
+			            $("#q5").val().trim(),
+        			    $("#q6").val().trim(),
+		        	    $("#q7").val().trim(),
+        		    	$("#q8").val().trim(),
+			            $("#q9").val().trim(),
+    	    		    $("#q10").val().trim()
+			        ]
+    			};
+    			return data;
+			}
+
+			function addQuestion(question, num) {
+    			var questionDiv = $("<div>");
+				var questionNum = $("<h4>").text("Question #"+num);
+	    		var questionText = $("<p>").text(question);
+
+				var answerSelect = $("<select>").addClass("form-control form-control-sm").attr("id", "q"+num);
+				var defaultOpt = $("<option value>").text("Choose option");
+				var optOne = $("<option>").attr("value","1").text("1 (Strongly disagree)");
+	    		var optTwo = $("<option>").attr("value","2").text("2");
+				var optThree = $("<option>").attr("value","3").text("3");
+	    		var optFour = $("<option>").attr("value","4").text("4");
+				var optFive = $("<option>").attr("value","5").text("5 (Strongly agree)");
+
+				answerSelect.append(defaultOpt).append(optOne,optTwo,optThree,optFour,optFive);
+
+			    questionDiv.append(questionNum,questionText).append(answerSelect);
+	    		$("#questions").append(questionDiv, "<br>");
+			}
+
+			function showFriend(data) {
+				$("#friend-name").text(data.name);
+				$(".modal").modal('show');
+			}
+		</script>
+	</head>
+	<body>
+
+		<div class="container">
+
+			<!-- Modal -->
+			<div class="modal" tabindex="-1" role="dialog">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+
+						<div class="modal-header">
+							<h5 class="modal-title">We found your new friend!</h5>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+								<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+
+						<div class="modal-body">
+							<p>
+								Your new friend: <span id="friend-name"></span><br>
+							</p>
+						</div>
+
+						<div class="modal-footer">
+							<button type="button" class="btn btn-primary" data-dismiss="modal">Awesome!</button>
+						</div>
+
+					</div>
+				</div>
+			</div>
+
+			<!-- Jumbotron header & prerequisite questions -->
+			<div class="jumbotron bg-light">
+				<div class="text-center">
+					<h1 class="font-italic">Friend Finder</h1>
+					<h2>Survey Questions</h2>
+					<a href="/">Back to home</a>
+					<hr>
+				</div>
+
+				<h4>About You</h4>
+
+				<div class="input-group mb-3">
+					<div class="input-group-prepend">
+						<span class="input-group-text">Name</span>
+					</div>
+					<input type="text" class="form-control" arial-label="Name" id="name" placeholder="(required full name)">
+				</div>
+
+				<div class="input-group mb-3">
+					<div class="input-group-prepend">
+						<span class="input-group-text">Photo (link)</span>
+					</div>
+					<input type="text" class="form-control" arial-label="Name" id="photo" placeholder="(optional)">
+				</div>
+			</div>
+
+			<!-- Survey -->
+			<form method="POST" role="form">
+
+				<div id="questions">
+				</div>
+
+				<div class="text-center">
+					<button type="submit" class="btn btn-primary" id="submitBtn">Find your companion!</button>
+				</div>
+
+				<br>
+			</form>
+
+			<footer class="footer">
+				<p class="text-center">
+					<a href="/api/friends">API Friends List</a>
+				</p>
+			</footer>
+
+		</div>
+
+		<!-- <script type="text/javascript" src="/app/public/questions.js"></script> -->
+		<script type="text/javascript">
+
+			$(document).ready(function() {
+				$.get("/api/questions", function(data) {
+					for(var i=0; i<data.length; i++) {
+						addQuestion(data[i], i+1);
+					}
+				});
+			});
+
+			$("#submitBtn").on("click", function(e) {
+				e.preventDefault();
+
+				function validateForm() {
+					var isValid = true;
+					$(".form-control").each(function() {
+						if($(this).val() == "") isValid = false;
+					});
+					return isValid;
+				}
+
+				if(validateForm()) {
+					var data = gatherData();
+
+					$.post("/api/friends", data).then(function(res) {
+						showFriend(res);
+					});
+				}
+			});
+		</script>
+	</body>
+</html>
